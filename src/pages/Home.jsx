@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PostCard from '../components/PostCard';
-import { getPosts } from '../utils/storage'; // pulls from Supabase
+import { getPosts } from '../utils/storage';
 
 const flagOptions = ['Landscape', 'Portrait', 'Macro', 'Street', 'Travel'];
 const sortOptions = ['Newest', 'Most Upvoted'];
 
-const Home = () => {
+const Home = ({ layout = 'grid' }) => {
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFlag, setActiveFlag] = useState('All');
@@ -33,12 +33,8 @@ const Home = () => {
   }, []);
 
   const filteredPosts = allPosts
-    .filter(post =>
-      activeFlag === 'All' ? true : post.flags?.includes(activeFlag)
-    )
-    .filter(post =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter(post => activeFlag === 'All' || post.flags?.includes(activeFlag))
+    .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === 'Newest') {
         return new Date(b.createdAt) - new Date(a.createdAt);
@@ -114,11 +110,14 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Posts Grid */}
-      <div className="row">
+      {/* Posts */}
+      <div className={layout === 'list' ? '' : 'row'}>
         {filteredPosts.map(post => (
-          <div key={post.id} className="col-md-6 col-lg-4 mb-4">
-            <PostCard post={post} showId={true} />
+          <div
+            key={post.id}
+            className={layout === 'list' ? 'mb-4' : 'col-md-6 col-lg-4 mb-4'}
+          >
+            <PostCard post={post} showId={true} layout={layout} />
           </div>
         ))}
       </div>

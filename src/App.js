@@ -6,11 +6,12 @@ import { v4 as uuidv4 } from 'uuid';
 import Home from './pages/Home';
 import CreateOrEdit from './pages/CreateOrEdit';
 import PostDetail from './components/PostDetail';
-import ThemeToggle from './components/ThemeToggle';
+import CustomizeUI from './components/CustomizeUI';
 import Login from './pages/Login';
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [layout, setLayout] = useState(localStorage.getItem('layout') || 'grid');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +32,6 @@ const App = () => {
         setUser(user);
         localStorage.setItem('userId', user.id);
       } else {
-        // Guest user already assigned above
         console.log("👤 Continuing as guest:", localStorage.getItem('userId'));
       }
     };
@@ -50,10 +50,9 @@ const App = () => {
         } else {
           console.log("📤 Auth state changed: Logged out");
           setUser(null);
-
           const guestId = localStorage.getItem('guestId') || uuidv4();
           localStorage.setItem('userId', guestId);
-          localStorage.setItem('guestId', guestId); // Re-preserve
+          localStorage.setItem('guestId', guestId);
           console.log("🔁 Reverted to guest:", guestId);
         }
       }
@@ -67,19 +66,17 @@ const App = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
-
     const guestId = localStorage.getItem('guestId') || uuidv4();
     localStorage.setItem('userId', guestId);
     localStorage.setItem('guestId', guestId);
-
     navigate('/login');
   };
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="text-primary">📸 HobbyHub – Photography</h1>
-        <ThemeToggle />
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 className="text-primary mb-0">📸 HobbyHub – Photography</h1>
+        <CustomizeUI layout={layout} setLayout={setLayout} />
       </div>
 
       <nav className="my-3 text-center">
@@ -98,7 +95,7 @@ const App = () => {
       </nav>
 
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home layout={layout} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/create" element={<CreateOrEdit />} />
