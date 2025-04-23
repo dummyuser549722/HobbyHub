@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import supabase from './supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,6 +13,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [layout, setLayout] = useState(localStorage.getItem('layout') || 'grid');
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // 🧠 Ensure guestId is set once
@@ -46,10 +47,15 @@ const App = () => {
           console.log("📥 Auth state changed: Logged in as", user.email);
           setUser(user);
           localStorage.setItem('userId', user.id);
-          navigate('/');
+
+          // ✅ Only redirect if on login page
+          if (location.pathname === '/login') {
+            navigate('/');
+          }
         } else {
           console.log("📤 Auth state changed: Logged out");
           setUser(null);
+
           const guestId = localStorage.getItem('guestId') || uuidv4();
           localStorage.setItem('userId', guestId);
           localStorage.setItem('guestId', guestId);
@@ -61,7 +67,7 @@ const App = () => {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
